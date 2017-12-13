@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/nginnever/crypto-kitty-battle/issues"
   },
-  "homepage": "https://github.com/nginnever/crypto-kitty-battle#readme"
+  "homepage": "https://github.com/nginnever/crypto-kitty-battle#readme",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "babel-register": "^6.26.0"
+  }
 }
