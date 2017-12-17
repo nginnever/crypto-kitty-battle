@@ -2,7 +2,7 @@ require('babel-register')
 require('babel-polyfill')
 
 var test = true
-var rinkeby = true
+var rinkeby = false
 var account
 
 if(test){
@@ -23,7 +23,7 @@ module.exports = {
       network_id: "*", // Match any network id
       from: account,
       //gas: 4612388
-      gas: 6500000
+      gas: 6187609
     },
     rinkeby: {
       host: "localhost", // Connect to geth on the specified

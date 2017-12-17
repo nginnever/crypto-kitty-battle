@@ -2,7 +2,7 @@
   "name": "crypto-kitty-battle",
   "version": "1.0.0",
   "description": "",
-  "main": "truffle.js",
+  "main": "index.js",
   "directories": {
     "test": "test"
   },
@@ -21,6 +21,8 @@
   "homepage": "https://github.com/nginnever/crypto-kitty-battle#readme",
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
     "babel-register": "^6.26.0"
   }
 }
