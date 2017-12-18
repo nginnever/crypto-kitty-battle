@@ -10,14 +10,18 @@ Currently all cats are created equal. When depositing a crypto kitty in the batt
 
 Do to the complexity of the CK contract the test version of CK Battle Arena is deployed on the rinkeby/kovan test network where the block gas limit is > 6000000
 
-Kitty 0 (genesis kitty) genes are hardcoded to the underflow of uint256 (0 - 1 = 2**256 - 1)
+Kitty 0 (genesis kitty) genes are hardcoded to the underflow of `uint256 (0 - 1 = 2**256 - 1)`
 
 A testnet version based on the open and verified crypto kitties mainnet deployment can be found at the following addresses
 
 KittyCore: `0x606991c078088943e32d3bb97c294c9e8b6480fc`
+
 SaleAuction: `0x1f23828b55283aeaf9e93c9767fcba43f8b846cb`
+
 SiringAuction: `0x77d9c50bd7f0d93580ff3fa4a3fec24e2ab945bc`
+
 GeneScienceSkeleton: `0x36bcd40f6a39f0ac5880cdd95876e9ed9e6ebbd9`
+
 
 This allows for beta testing of the crypto kitties battlegrounds without the risk of destroying real kittehs.
 
@@ -28,6 +32,11 @@ This allows for beta testing of the crypto kitties battlegrounds without the ris
 - Set Kitteh auction with sale auction by calling `setSaleAuctionAddress(address _address)`
 - Deploy Siring Auction Contract
 - Set Kitteh auction with siring auction by calling `setSiringAuctionAddress(address _address)`
+- unpause()
+- generate promo kitties for testing (TODO create a kitteh faucet)
+- Deploy PowerScience contract
+- Deploy Arena and link powerscience
+- enter kittehs in the arena to train/battle.
 
 #### Gene Science Contract
 

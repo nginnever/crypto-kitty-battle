@@ -15,14 +15,11 @@ contract ArenaBase {
         address initiator;
         // initiator cat
         uint256 initiatorCatID
-        // Price (in wei) at beginning of auction
+        // Price (in wei) to challenge this cat
         uint128 wagerPrice;
         // Game mode: Pinks, Wager, Pride
         uint8 gameMode;
         // Duration (in seconds) of auction
-        uint64 duration;
-        // Time when battle was created
-        // NOTE: 0 if this auction has been concluded
         uint64 startedAt;
         // Acceptable range of challenger powers
         uint64 powerRange;
@@ -32,6 +29,7 @@ contract ArenaBase {
         uint64 numKittiesInArena;
         uint64 wins;
         uint64 losses;
+        uint256[] kitties;
     }
 
     struct KittyProfile {
@@ -64,6 +62,7 @@ contract ArenaBase {
 
     event BattleCreated(uint256 tokenId, uint256 wagerPrice, uint256 duration);
     event BattleCancelled(uint256 tokenId);
+    event ArenaEntered(uint256 tokenId);
 
     /// @dev Returns true if the claimant owns the token.
     /// @param _claimant - Address claiming to own the token.
@@ -74,17 +73,27 @@ contract ArenaBase {
 
     function _calculateBasePower(uint256 _tokenId) internal returns(uint64) {
         // call to a contract to do secret calculation
-        return 420;
+        return 1337;
     }
 
     function _enterKitty(uint256 _tokenId) internal {
-        if(battleKitties[_tokenId].basePower == 0) {
-            uint256 _power = _calculateBasePower(_tokenId);
+        _escrow(msg.sender, _tokenId);
+
+        uint256 _power = _calculateBasePower(_tokenId);
+        uint256[] _kitties;
+        kitties.push(_tokenId);
+
+        KittyProfile storage temp = battleKitties[_tokenId];
+
+        if(temp.basePower == 0) {
             KittyProfile memory profile = KittyProfile(power,0,0,0,0);
             battleKitties[_tokenId] = profile;
         }
-
+        temp.basePower = _power;
+        battleKitties[_tokenId] = temp;
         fighterIndexToOwner[_tokenId] = msg.sender;
+
+        ArenaEntered(_tokenId);
     }
 
     /// @dev Escrows the NFT, assigning ownership to this contract.
@@ -228,7 +237,7 @@ contract ArenaBase {
         } else {
             range = p2-p1;
         }
-        return (range <= _battleRange)''
+        return (range <= _battleRange);
     }
 
     /// @dev Computes owner's cut of a sale.

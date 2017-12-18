@@ -57,15 +57,17 @@ contract Arena is ArenaBase, Ownable, Pausable {
         // require(fighterIndexToOwner[_tokenId] == address(0));
 
         if(trainers[msg.sender].numKittiesInArena == 0) {
-            Trainer memory trainer = Trainer(1, 0, 0);
+            uint256[] _kitties;
+            kitties.push(_tokenId);
+            Trainer memory trainer = Trainer(1, 0, 0, kitties);
             trainers[msg.sender] = trainer;
         } else {
             Trainer storage trainer = trainers[msg.sender];
             trainer.numKittiesInArena++;
+            trainer.kitties.push(_tokenId);
             trainers[msg.sender] = trainer;
         }
 
-        _escrow(msg.sender, _tokenId);
         _enterKitty(_tokenId);
     }
 
@@ -82,15 +84,12 @@ contract Arena is ArenaBase, Ownable, Pausable {
 
     /// @dev Creates and begins a new offer to duel.
     /// @param _tokenId - ID of token to auction, sender must be owner.
-    /// @param _startingPrice - Price of item (in wei) at beginning of auction.
-    /// @param _endingPrice - Price of item (in wei) at end of auction.
-    /// @param _duration - Length of time to move between starting
-    ///  price and ending price (in seconds).
-    /// @param _seller - Seller, if not the message sender
+    /// @param _wagerPrice - Price (in wei) to challenge this cat.
+    /// @param _gameMode - 1 if wager, 2 if pinks, 3 if pride
+    /// @param _powerRange - acceptable range of power challengers may have
     function createBattle(
         uint256 _tokenId,
         uint256 _wagerPrice,
-        uint256 _duration,
         uint8 _gameMode,
         uint64 _powerRange
     )
@@ -100,7 +99,7 @@ contract Arena is ArenaBase, Ownable, Pausable {
         // Sanity check that no inputs overflow how many bits we've allocated
         // to store them in the auction struct.
         require(_wagerPrice == uint256(uint128(_wagerPrice)));
-        require(_duration == uint256(uint64(_duration)));
+        require(_powerRange == uint256(uint64(_powerRange)));
         require(_powerRange == uint256(uint64(_powerRange)));
         require(_gameMode == uint256(uint8(_gameMode)));
 
@@ -112,7 +111,6 @@ contract Arena is ArenaBase, Ownable, Pausable {
             uint256(_tokenId),
             uint128(_wagerPrice),
             uint8(_gameMode),
-            uint64(_duration),
             uint64(now),
             uint64(_powerRange)
         );
