@@ -1,4 +1,4 @@
-# WIP Crypto Kitties Battleground by Crypto Arena
+# WIP Crypto Kitties Battleground
 
 Crypto Kitties Battleground is an extension to the popular crypto kitties smart contracts. Those who have purchased or bred crypto kitties may deposit their cats into the battle arena contract. Once deposited kitty owners can train their crypto warriors by calling the `increaseStat()` functions. The more ether an owner has the higher they may pump their kitties battle stats.
 
