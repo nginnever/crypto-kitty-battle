@@ -4,8 +4,8 @@ pragma solidity ^0.4.11;
 import '../token/ERC721.sol';
 import './PowerScience.sol';
 
-/// @title Auction Core
-/// @dev Contains models, variables, and internal methods for the auction.
+/// @title Arena Core
+/// @dev Contains models, variables, and internal methods for the arena.
 /// @notice We omit a fallback function to prevent accidental sends to this contract.
 contract ArenaBase {
 
@@ -50,7 +50,7 @@ contract ArenaBase {
     // Values 0-10,000 map to 0%-100%
     uint256 public ownerCut = 1000;
 
-    // Map from token ID to their corresponding auction.
+    // Map from token ID to their corresponding battle.
     mapping (uint256 => Battle) tokenIdToBattle;
 
     mapping (address => Trainer) trainers;
@@ -62,6 +62,7 @@ contract ArenaBase {
 
     event BattleCreated(uint256 tokenId, uint256 wagerPrice, uint256 duration);
     event BattleCancelled(uint256 tokenId);
+    BattleSuccessful(uint256 _tokenId, uint256 price, address winner);
     event ArenaEntered(uint256 tokenId);
 
     /// @dev Returns true if the claimant owns the token.
@@ -80,8 +81,6 @@ contract ArenaBase {
         _escrow(msg.sender, _tokenId);
 
         uint256 _power = _calculateBasePower(_tokenId);
-        uint256[] _kitties;
-        kitties.push(_tokenId);
 
         KittyProfile storage temp = battleKitties[_tokenId];
 
@@ -89,6 +88,7 @@ contract ArenaBase {
             KittyProfile memory profile = KittyProfile(power,0,0,0,0);
             battleKitties[_tokenId] = profile;
         }
+
         temp.basePower = _power;
         battleKitties[_tokenId] = temp;
         fighterIndexToOwner[_tokenId] = msg.sender;
@@ -114,13 +114,11 @@ contract ArenaBase {
         nonFungibleContract.transfer(_receiver, _tokenId);
     }
 
-    /// @dev Adds an auction to the list of open auctions. Also fires the
-    ///  AuctionCreated event.
-    /// @param _tokenId The ID of the token to be put on auction.
-    /// @param _auction Auction to add.
+    /// @dev Adds an battle to the list of open battles. Also fires the
+    ///  BattleCreated event.
+    /// @param _tokenId The ID of the token to be put on battle.
+    /// @param _battle Battle to add.
     function _addBattle(uint256 _tokenId, Battle _battle) internal {
-        // Require that all auctions have a duration of
-        // at least one minute. (Keeps our math from getting hairy!)
         require(_battle.duration >= 1 minutes);
 
         tokenIdToBattle[_tokenId] = _battle;
@@ -132,7 +130,7 @@ contract ArenaBase {
         );
     }
 
-    /// @dev Cancels an auction unconditionally.
+    /// @dev Cancels a battle unconditionally.
     function _cancelBattle(uint256 _tokenId, address _initiator) internal {
         _removeBattle(_tokenId);
         BattleCancelled(_tokenId);
@@ -144,7 +142,7 @@ contract ArenaBase {
         internal
         returns (uint256)
     {
-        // Get a reference to the auction struct
+        // Get a reference to the battle struct
         Battle storage battle = tokenIdToBattle[_tokenId];
 
         // Explicitly check that this battle is currently live.
@@ -205,7 +203,7 @@ contract ArenaBase {
         msg.sender.transfer(bidExcess);
 
         // Tell the world!
-        AuctionSuccessful(_tokenId, price, msg.sender);
+        BattleSuccessful(_tokenId, price, msg.sender);
 
         return price;
     }

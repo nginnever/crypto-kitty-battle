@@ -5,7 +5,7 @@ import '../CryptoCats/ownership/Ownable.sol';
 import '../CryptoCats/ownership/Pausable.sol';
 import './PowerScienceInterface.sol';
 
-/// @title Clock auction for non-fungible tokens.
+/// @title Battle Arena for crypto kitties tokens.
 /// @notice We omit a fallback function to prevent accidental sends to this contract.
 contract Arena is ArenaBase, Ownable, Pausable {
 
@@ -18,8 +18,6 @@ contract Arena is ArenaBase, Ownable, Pausable {
     ///  and verifies the owner cut is in the valid range.
     /// @param _nftAddress - address of a deployed contract implementing
     ///  the Nonfungible Interface.
-    /// @param _cut - percent cut the owner takes on each auction, must be
-    ///  between 0-10,000.
     function Arena(address _nftAddress) {
         ERC721 candidateContract = ERC721(_nftAddress);
         require(candidateContract.supportsInterface(InterfaceSignature_ERC721));
@@ -28,8 +26,8 @@ contract Arena is ArenaBase, Ownable, Pausable {
         owner = msg.sender;
     }
 
-    /// @dev Update the address of the genetic contract, can only be called by the CEO.
-    /// @param _address An address of a GeneScience contract instance to be used from this point forward.
+    /// @dev Update the address of the power contract
+    /// @param _address An address of a PowerScience contract instance to be used from this point forward.
     function setPowerScienceAddress(address _address) external onlyOwner {
         PowerScienceInterface candidateContract = PowerScienceInterface(_address);
 
@@ -118,8 +116,8 @@ contract Arena is ArenaBase, Ownable, Pausable {
         _addBattle(_tokenId, battle);
     }
 
-    /// @dev Bids on an open auction, completing the auction and transferring
-    ///  ownership of the NFT if enough Ether is supplied.
+    /// @dev Attempts to engage in an open battle, completing the battle and transferring
+    ///  ownership of the NFT or ether if enough Ether is supplied.
     /// @param _tokenId - ID of token to bid on.
     function battle(uint256 _tokenId)
         payable
@@ -132,8 +130,8 @@ contract Arena is ArenaBase, Ownable, Pausable {
         //_transfer(msg.sender, _tokenId);
     }
 
-    /// @dev Cancels an auction that hasn't been won yet.
-    ///  Returns the NFT to original owner.
+    /// @dev Cancels a battle that hasn't been won yet.
+    ///  Returns the NFT or ether to original owner.
     /// @notice This is a state-modifying function that can
     ///  be called while the contract is paused.
     /// @param _tokenId - ID of token on auction
@@ -147,8 +145,8 @@ contract Arena is ArenaBase, Ownable, Pausable {
         _cancelBattle(_tokenId, initiator);
     }
 
-    /// @dev Returns auction info for an NFT on auction.
-    /// @param _tokenId - ID of NFT on auction.
+    /// @dev Returns battle info for an NFT up for a fight.
+    /// @param _tokenId - ID of NFT battle.
     function getBattle(uint256 _tokenId)
         external
         view

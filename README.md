@@ -1,4 +1,4 @@
-# Crypto Kitties Battleground by Crypto Arena
+# WIP Crypto Kitties Battleground by Crypto Arena
 
 Crypto Kitties Battleground is an extension to the popular crypto kitties smart contracts. Those who have purchased or bred crypto kitties may deposit their cats into the battle arena contract. Once deposited kitty owners can train their crypto warriors by calling the `increaseStat()` functions. The more ether an owner has the higher they may pump their kitties battle stats.
 
@@ -6,7 +6,7 @@ Entering a battle is accomplished by checking the battle registery to find an op
 
 Currently all cats are created equal. When depositing a crypto kitty in the battle arena, every cat will start with the same base stats. Once a mapping of the uint256 genetic integers to rare traits can be found, rare kitties may deposit in the arena with higher overall stats.
 
-### Rinkeby Testnet Deployment
+## Rinkeby Testnet Deployment
 
 Do to the complexity of the CK contract the test version of CK Battle Arena is deployed on the rinkeby/kovan test network where the block gas limit is > 6000000
 
@@ -25,7 +25,7 @@ GeneScienceSkeleton: `0x36bcd40f6a39f0ac5880cdd95876e9ed9e6ebbd9`
 
 This allows for beta testing of the crypto kitties battlegrounds without the risk of destroying real kittehs.
 
-### Deployment process
+### Deployment process notes
 
 - Deploy Kitteh core
 - Deploy Sale Auction Contract 
