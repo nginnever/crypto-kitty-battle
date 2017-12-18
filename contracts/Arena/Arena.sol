@@ -14,6 +14,9 @@ contract Arena is ArenaBase, Ownable, Pausable {
     ///  Ref: https://github.com/ethereum/EIPs/issues/721
     bytes4 constant InterfaceSignature_ERC721 = bytes4(0x9a20483d);
 
+    // Reference to contract to determine base power
+    PowerScienceInterface public powerScience;
+
     /// @dev Constructor creates a reference to the NFT ownership contract
     ///  and verifies the owner cut is in the valid range.
     /// @param _nftAddress - address of a deployed contract implementing
@@ -55,15 +58,15 @@ contract Arena is ArenaBase, Ownable, Pausable {
         // require(fighterIndexToOwner[_tokenId] == address(0));
 
         if(trainers[msg.sender].numKittiesInArena == 0) {
-            uint256[] _kitties;
-            kitties.push(_tokenId);
-            Trainer memory trainer = Trainer(1, 0, 0, kitties);
+            // uint256[] memory _kitties;
+            // _kitties.push(_tokenId);
+            Trainer memory trainer = Trainer(1, 0, 0);
             trainers[msg.sender] = trainer;
         } else {
-            Trainer storage trainer = trainers[msg.sender];
-            trainer.numKittiesInArena++;
-            trainer.kitties.push(_tokenId);
-            trainers[msg.sender] = trainer;
+            Trainer memory _trainer = trainers[msg.sender];
+            _trainer.numKittiesInArena++;
+            //trainer.kitties.push(_tokenId);
+            trainers[msg.sender] = _trainer;
         }
 
         _enterKitty(_tokenId);
@@ -71,10 +74,10 @@ contract Arena is ArenaBase, Ownable, Pausable {
 
     function leaveArena(uint256 _tokenId) {
         require(fighterIndexToOwner[_tokenId] == msg.sender);
-        require(!_isOnBattle(battle));
+        require(!_isOnBattle(_tokenId));
         delete fighterIndexToOwner[_tokenId];
 
-        Trainer storage trainer = trainers[msg.sender]
+        Trainer storage trainer = trainers[msg.sender];
         trainer.numKittiesInArena--;
 
         _transfer(msg.sender, _tokenId);
@@ -119,14 +122,14 @@ contract Arena is ArenaBase, Ownable, Pausable {
     /// @dev Attempts to engage in an open battle, completing the battle and transferring
     ///  ownership of the NFT or ether if enough Ether is supplied.
     /// @param _tokenId - ID of token to bid on.
-    function battle(uint256 _tokenId)
+    function fight(uint256 _tokenId, uint256 _initiatorTokenId)
         payable
         whenNotPaused
     {
         require(_owns(this, _tokenId));
         require(fighterIndexToOwner[_tokenId] == msg.sender);
         // _bid will throw if the bid or funds transfer fails
-        _battle(_tokenId, msg.value);
+        _battle(_tokenId, _initiatorTokenId, msg.value);
         //_transfer(msg.sender, _tokenId);
     }
 
@@ -139,7 +142,7 @@ contract Arena is ArenaBase, Ownable, Pausable {
         public
     {
         Battle storage battle = tokenIdToBattle[_tokenId];
-        require(_isOnBattle(battle));
+        require(_isOnBattle(_tokenId));
         address initiator = battle.initiator;
         require(msg.sender == initiator);
         _cancelBattle(_tokenId, initiator);
@@ -156,18 +159,16 @@ contract Arena is ArenaBase, Ownable, Pausable {
         uint256 initiatorCatID,
         uint128 wagerPrice,
         uint8 gameMode,
-        uint64 duration,
         uint64 startedAt,
         uint64 powerRange
     ) {
         Battle storage battle = tokenIdToBattle[_tokenId];
-        require(_isOnBattle(battle));
+        require(_isOnBattle(_tokenId));
         return (
             battle.initiator,
             battle.initiatorCatID,
             battle.wagerPrice,
             battle.gameMode,
-            battle.duration,
             battle.startedAt,
             battle.powerRange
         );
