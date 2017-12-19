@@ -22,7 +22,7 @@ contract Arena is ArenaBase, Ownable, Pausable {
     /// @param _nftAddress - address of a deployed contract implementing
     ///  the Nonfungible Interface.
     function Arena(address _nftAddress) {
-        ERC721 candidateContract = ERC721(_nftAddress);
+        KittyCore candidateContract = KittyCore(_nftAddress);
         require(candidateContract.supportsInterface(InterfaceSignature_ERC721));
         nonFungibleContract = candidateContract;
 
@@ -63,13 +63,18 @@ contract Arena is ArenaBase, Ownable, Pausable {
             Trainer memory trainer = Trainer(1, 0, 0);
             trainers[msg.sender] = trainer;
         } else {
-            Trainer memory _trainer = trainers[msg.sender];
-            _trainer.numKittiesInArena++;
+            trainers[msg.sender].numKittiesInArena++;
             //trainer.kitties.push(_tokenId);
-            trainers[msg.sender] = _trainer;
         }
 
-        _enterKitty(_tokenId);
+        var (_a, _b, _c, _d, _e, _f, _g, _h, _i, _j) = nonFungibleContract.getKitty(_tokenId);
+        uint256 _power = powerScience.findPower(_j, _i, _c);
+
+        if(_power > battleKitties[championId].basePower) {
+            championId = _tokenId;
+        }
+
+        _enterKitty(_tokenId, uint128(_power));
     }
 
     function leaveArena(uint256 _tokenId) {
@@ -77,8 +82,7 @@ contract Arena is ArenaBase, Ownable, Pausable {
         require(!_isOnBattle(_tokenId));
         delete fighterIndexToOwner[_tokenId];
 
-        Trainer storage trainer = trainers[msg.sender];
-        trainer.numKittiesInArena--;
+        trainers[msg.sender].numKittiesInArena--;
 
         _transfer(msg.sender, _tokenId);
     }
@@ -100,7 +104,6 @@ contract Arena is ArenaBase, Ownable, Pausable {
         // Sanity check that no inputs overflow how many bits we've allocated
         // to store them in the auction struct.
         require(_wagerPrice == uint256(uint128(_wagerPrice)));
-        require(_powerRange == uint256(uint64(_powerRange)));
         require(_powerRange == uint256(uint64(_powerRange)));
         require(_gameMode == uint256(uint8(_gameMode)));
 
@@ -128,9 +131,7 @@ contract Arena is ArenaBase, Ownable, Pausable {
     {
         require(_owns(this, _tokenId));
         require(fighterIndexToOwner[_tokenId] == msg.sender);
-        // _bid will throw if the bid or funds transfer fails
         _battle(_tokenId, _initiatorTokenId, msg.value);
-        //_transfer(msg.sender, _tokenId);
     }
 
     /// @dev Cancels a battle that hasn't been won yet.
@@ -148,6 +149,20 @@ contract Arena is ArenaBase, Ownable, Pausable {
         _cancelBattle(_tokenId, initiator);
     }
 
+    function level(uint256 _tokenId) 
+        payable
+        whenNotPaused
+    {
+        require(!_isOnBattle(_tokenId));
+        require(fighterIndexToOwner[_tokenId] == msg.sender);
+
+        uint8 _currLevel = battleKitties[_tokenId].level;
+
+        require(_currLevel <= 9);
+
+        _level(_tokenId, _currLevel);
+
+    }
     /// @dev Returns battle info for an NFT up for a fight.
     /// @param _tokenId - ID of NFT battle.
     function getBattle(uint256 _tokenId)

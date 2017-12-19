@@ -2,7 +2,7 @@ pragma solidity ^0.4.11;
 
 
 import './ownership/KittyAccessControl.sol';
-import './token/ERC721.sol';
+
 import './auction/SaleClockAuction.sol';
 import './auction/SiringClockAuction.sol';
 

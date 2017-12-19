@@ -5,5 +5,5 @@ contract PowerScienceInterface {
 
     /// @dev 
     /// @param genes genes of cat
-    function findPower(uint256 genes) public returns (uint256);
+    function findPower(uint256 genes, uint256 generation, uint256 coolDown) public returns (uint256);
 }

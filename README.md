@@ -1,10 +1,14 @@
 # WIP Crypto Kitties Battleground
 
-Crypto Kitties Battleground is an extension to the popular crypto kitties smart contracts. Those who have purchased or bred crypto kitties may deposit their cats into the battle arena contract. Once deposited kitty owners can train their crypto warriors by calling the `increaseStat()` functions. The more ether an owner has the higher they may pump their kitties battle stats.
+Crypto Kitties Battleground is an extension to the popular crypto kitties smart contracts. Those who have purchased or bred crypto kitties may deposit their cats into the battle arena contract. Once deposited kitty owners can train their crypto warriors by calling the `level()` function. The more ether an owner has the higher they may pump their kitties battle stats.
+
+Currently all cats enter the arena with a base power rating that can be increased by training the kitty. The base powe rating is determined randomly based upon the genetics of the cat. Factors such as a lower generation number and faster birthing cooldown will give the kitty a higher chance of having a high base power. This base power is the multiplication factor of the power increase gained from calling the level() function. Cats with a higher base power rating will be able to achieve the highest power in the arena.
 
 Entering a battle is accomplished by checking the battle registery to find an open battle request in your kitties power range, or by creating an open battle request with a specified power range and ether wager for win/lose. Each dueling kitties stats are compared in a non-verified contract that encorporates some randomness into the victory decision.
 
-Currently all cats are created equal. When depositing a crypto kitty in the battle arena, every cat will start with the same base stats. Once a mapping of the uint256 genetic integers to rare traits can be found, rare kitties may deposit in the arena with higher overall stats.
+#### Hold the arena!
+
+The kitty in the gym with the highest power will collect a percentage of all arena earnings via level ups and wagers while they retain the highest power.
 
 ## Rinkeby Testnet Deployment
 

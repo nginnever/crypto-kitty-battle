@@ -1,12 +1,18 @@
 pragma solidity ^0.4.11;
 
 
+import '../CryptoCats/KittyCore.sol';
 import '../CryptoCats/token/ERC721.sol';
 
 /// @title Arena Core
 /// @dev Contains models, variables, and internal methods for the arena.
 /// @notice We omit a fallback function to prevent accidental sends to this contract.
 contract ArenaBase {
+
+    uint256 public score1;
+    uint256 public score2;
+    uint256 public rand1;
+    uint256 public rand2;
 
     // Represents an auction on an NFT
     struct Battle {
@@ -32,7 +38,7 @@ contract ArenaBase {
     }
 
     struct KittyProfile {
-        uint64 basePower;
+        uint128 basePower;
         uint64 wins;
         uint64 losses;
         uint8 level;
@@ -40,18 +46,22 @@ contract ArenaBase {
     }
 
     // Reference to contract tracking NFT ownership
-    ERC721 public nonFungibleContract;
+    KittyCore public nonFungibleContract;
 
     // Cut owner takes on each battle, measured in basis points (1/100 of a percent).
     // Values 0-10,000 map to 0%-100%
     uint256 public ownerCut = 1000;
 
+    uint256 public championCut = 1000;
+
+    uint256 public championId;
+
     // Map from token ID to their corresponding battle.
-    mapping (uint256 => Battle) tokenIdToBattle;
+    mapping (uint256 => Battle) public tokenIdToBattle;
 
-    mapping (address => Trainer) trainers;
+    mapping (address => Trainer) public trainers;
 
-    mapping (uint256 => KittyProfile) battleKitties;
+    mapping (uint256 => KittyProfile) public battleKitties;
 
     mapping (uint256 => address) public fighterIndexToOwner;
 
@@ -60,6 +70,7 @@ contract ArenaBase {
     event BattleCancelled(uint256 tokenId);
     event BattleSuccessful(uint256 _tokenId, uint256 price, address winner);
     event ArenaEntered(uint256 tokenId);
+    event LevelUp(uint256 tokenId, uint8 level);
 
     /// @dev Returns true if the claimant owns the token.
     /// @param _claimant - Address claiming to own the token.
@@ -68,25 +79,14 @@ contract ArenaBase {
         return (nonFungibleContract.ownerOf(_tokenId) == _claimant);
     }
 
-    function _calculateBasePower(uint256 _tokenId) internal returns(uint64) {
-        // call to a contract to do secret calculation
-        return 1337;
-    }
-
-    function _enterKitty(uint256 _tokenId) internal {
+    function _enterKitty(uint256 _tokenId, uint128 _power) internal {
         _escrow(msg.sender, _tokenId);
 
-        uint64 _power = _calculateBasePower(_tokenId);
-
-        KittyProfile storage temp = battleKitties[_tokenId];
-
-        if(temp.basePower == 0) {
+        if(battleKitties[_tokenId].basePower == 0) {
             KittyProfile memory profile = KittyProfile(_power,0,0,0,0);
             battleKitties[_tokenId] = profile;
-        }
+        } 
 
-        temp.basePower = _power;
-        battleKitties[_tokenId] = temp;
         fighterIndexToOwner[_tokenId] = msg.sender;
 
         ArenaEntered(_tokenId);
@@ -166,6 +166,13 @@ contract ArenaBase {
         } else {
             _losingCat = _initiatorTokenId;
         }
+
+        battleKitties[_winningCatID].wins++;
+        battleKitties[_losingCat].losses++;
+
+        trainers[_winner].wins++;
+        trainers[fighterIndexToOwner[_losingCat]].losses++;
+
         // The battle is good! Remove the battle before sending the fees
         // to the sender so we can't have a reentrancy attack.
         _removeBattle(battle.initiatorCatID);
@@ -176,8 +183,9 @@ contract ArenaBase {
             // (NOTE: _computeCut() is guaranteed to return a
             // value <= price, so this subtraction can't go negative.)
             uint256 pot = _bidAmount + wager;
-            uint256 arenaCut = _computeCut(pot);
-            uint256 winnerProceeds = pot - arenaCut;
+            uint256 arenaCut = _computeCut(pot, ownerCut);
+            uint256 champCut = _computeCut(pot, championCut);
+            uint256 winnerProceeds = pot - arenaCut - champCut;
 
 
             // NOTE: Doing a transfer() in the middle of a complex
@@ -189,11 +197,12 @@ contract ArenaBase {
             // can DoS is the sale of their own asset! (And if it's an
             // accident, they can call cancelAuction(). )
             _winner.transfer(winnerProceeds);
+            fighterIndexToOwner[championId].transfer(champCut);
         }
 
         // Battle has agreed to transfer lossing cat to winner
         if (battle.gameMode == 2) {
-            _transfer(_winner, _losingCat);
+            fighterIndexToOwner[_losingCat] = _winner;
         }
 
         // Calculate any excess funds included with the bid. If the excess
@@ -219,6 +228,24 @@ contract ArenaBase {
         delete tokenIdToBattle[_tokenId];
     }
 
+    function _level(uint256 _tokenId, uint8 _currLevel) internal {
+        if(_currLevel == 0) {
+            _currLevel = 1;
+            battleKitties[_tokenId].level++;
+        }
+
+        require(msg.value >= _currLevel*1 ether);
+
+        battleKitties[_tokenId].level++;
+        battleKitties[_tokenId].basePower += battleKitties[_tokenId].basePower * battleKitties[_tokenId].level;
+
+        if(battleKitties[_tokenId].basePower > battleKitties[championId].basePower) {
+            championId = _tokenId;
+        }
+
+        LevelUp(_tokenId, _currLevel++);
+    }
+
     // function _isReadyToBattle(Battle storage _battle) internal view returns (bool) {
     //     return (_battle.startedAt + _battle.duration > now);
     // }
@@ -230,12 +257,10 @@ contract ArenaBase {
         return (b.startedAt > 0);
     }
 
-    function _isWithinPower(uint256 _tokenId1, uint256 _tokenId2, uint64 _battleRange) internal view returns (bool) {
-        KittyProfile storage kp1 = battleKitties[_tokenId1];
-        KittyProfile storage kp2 = battleKitties[_tokenId2];
-        uint64 range;
-        uint64 p1 = kp1.basePower;
-        uint64 p2 = kp2.basePower;
+    function _isWithinPower(uint256 _tokenId1, uint256 _tokenId2, uint128 _battleRange) internal view returns (bool) {
+        uint128 range;
+        uint128 p1 = battleKitties[_tokenId1].basePower;
+        uint128 p2 = battleKitties[_tokenId2].basePower;
         if(p1 > p2) {
             range = p1-p2;
         } else {
@@ -246,17 +271,51 @@ contract ArenaBase {
 
     /// @dev Computes owner's cut of a sale.
     /// @param _price - Sale price of NFT.
-    function _computeCut(uint256 _price) internal view returns (uint256) {
+    function _computeCut(uint256 _price, uint256 _cut) internal view returns (uint256) {
         // NOTE: We don't use SafeMath (or similar) in this function because
         //  all of our entry functions carefully cap the maximum values for
         //  currency (at 128-bits), and ownerCut <= 10000 (see the require()
         //  statement in the ClockAuction constructor). The result of this
         //  function is always guaranteed to be <= _price.
-        return _price * ownerCut / 10000;
+        return _price * _cut / 10000;
     }
 
+    /// Generates a random number from 0 to 100 based on the last block hash
+    function _randomGen(uint256 seed) internal constant returns (uint256 randomNumber) {
+        return(uint256(keccak256(block.blockhash(block.number-1), seed )));
+    }
+
+
     function _getWinner(uint256 _initiatorCatID, uint256 _challengerCatID) internal view returns (uint256) {
-        return _initiatorCatID;
+        uint128 _p1 = battleKitties[_initiatorCatID].basePower;
+        uint128 _p2 = battleKitties[_challengerCatID].basePower;
+
+        uint256 _rand1 = _randomGen(uint64(now));
+        uint256 _rand2 = _randomGen(_rand1)%100;
+        _rand1 = _rand1%100;
+
+        uint256 _t = (_p1 * _rand1)/100;
+        uint256 _t2 = (_p2 * _rand2)/100;
+
+        uint256 _score1 =  _p1 + _t;
+        uint256 _score2 =  _p2 + _t2;
+
+        score1 = _score1;
+        score2 = _score2;
+        rand1 = _rand1;
+        rand2 = _rand2;
+
+        uint256 _winner;
+
+        require(_score1!=_score2);
+
+        if(_score1 > _score2) {
+            _winner = _initiatorCatID;
+        } else {
+            _winner = _challengerCatID;
+        }
+
+        return _winner;
     }
 
 }
