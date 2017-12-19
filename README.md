@@ -18,6 +18,8 @@ Kitty 0 (genesis kitty) genes are hardcoded to the underflow of `uint256 (0 - 1 
 
 A testnet version based on the open and verified crypto kitties mainnet deployment can be found at the following addresses
 
+Arena Address:  `0x86ece341db24b2772bc9ee26081414f42938db36`
+
 KittyCore: `0x606991c078088943e32d3bb97c294c9e8b6480fc`
 
 SaleAuction: `0x1f23828b55283aeaf9e93c9767fcba43f8b846cb`

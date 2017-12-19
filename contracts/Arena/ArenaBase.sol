@@ -173,6 +173,11 @@ contract ArenaBase {
         trainers[_winner].wins++;
         trainers[fighterIndexToOwner[_losingCat]].losses++;
 
+        // Battle has agreed to transfer lossing cat to winner
+        if (battle.gameMode == 2) {
+            fighterIndexToOwner[_losingCat] = _winner;
+        }
+
         // The battle is good! Remove the battle before sending the fees
         // to the sender so we can't have a reentrancy attack.
         _removeBattle(battle.initiatorCatID);
@@ -187,22 +192,8 @@ contract ArenaBase {
             uint256 champCut = _computeCut(pot, championCut);
             uint256 winnerProceeds = pot - arenaCut - champCut;
 
-
-            // NOTE: Doing a transfer() in the middle of a complex
-            // method like this is generally discouraged because of
-            // reentrancy attacks and DoS attacks if the seller is
-            // a contract with an invalid fallback function. We explicitly
-            // guard against reentrancy attacks by removing the auction
-            // before calling transfer(), and the only thing the seller
-            // can DoS is the sale of their own asset! (And if it's an
-            // accident, they can call cancelAuction(). )
             _winner.transfer(winnerProceeds);
             fighterIndexToOwner[championId].transfer(champCut);
-        }
-
-        // Battle has agreed to transfer lossing cat to winner
-        if (battle.gameMode == 2) {
-            fighterIndexToOwner[_losingCat] = _winner;
         }
 
         // Calculate any excess funds included with the bid. If the excess

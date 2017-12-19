@@ -2,6 +2,8 @@ const KittyCore = artifacts.require('./KittyCore.sol')
 const SaleAuction = artifacts.require('./SaleClockAuction.sol')
 const SiringAuction = artifacts.require('./SiringClockAuction.sol')
 const GeneScienceSkeleton = artifacts.require('./GeneScienceSkeleton.sol')
+const Arena = artifacts.require('./Arena.sol')
+const PowerScience = artifacts.require('./PowerScience.sol')
 
 let token 
 
@@ -31,6 +33,15 @@ module.exports = function(deployer) {
   //   console.log('GeneScience Address: ', res.address)
   // })
 
+  // deploy sale auction
+  Arena.new("0x606991c078088943e32d3bb97c294c9e8b6480fc").then((res) => {
+    token = res.address
+    console.log('Arena Address: ', res.address)
+    PowerScience.new().then((res) => {
+      token = res.address
+      console.log('PowerScience Address: ', res.address)
+    })
+  })
 
   // deploy all CK
   // KittyCore.new().then((res) => {

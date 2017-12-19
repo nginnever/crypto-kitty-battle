@@ -2,7 +2,7 @@ require('babel-register')
 require('babel-polyfill')
 
 var test = true
-var rinkeby = false
+var rinkeby = true
 var account
 
 if(test){
