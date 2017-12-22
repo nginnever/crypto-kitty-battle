@@ -7,7 +7,7 @@ import './auction/KittyAuction.sol';
 contract KittyMinting is KittyAuction {
 
     // Limits the number of cats the contract owner can ever create.
-    uint256 public constant PROMO_CREATION_LIMIT = 5000;
+    uint256 public constant PROMO_CREATION_LIMIT = 4000;
     uint256 public constant GEN0_CREATION_LIMIT = 45000;
 
     // Constants for gen0 auctions.
@@ -21,12 +21,14 @@ contract KittyMinting is KittyAuction {
     /// @dev we can create promo kittens, up to a limit. Only callable by COO
     /// @param _genes the encoded genes of the kitten to be created, any value is accepted
     /// @param _owner the future owner of the created kittens. Default to contract COO
-    function createPromoKitty(uint256 _genes, address _owner) external onlyCOO {
+    /// Allow anyone to create a kitty for testing purposes
+    function createPromoKitty(uint256 _genes, address _owner) external {
         address kittyOwner = _owner;
         if (kittyOwner == address(0)) {
              kittyOwner = cooAddress;
         }
-        require(promoCreatedCount < PROMO_CREATION_LIMIT);
+        // Allow unlimited creation
+        // require(promoCreatedCount < PROMO_CREATION_LIMIT);
 
         promoCreatedCount++;
         _createKitty(0, 0, 0, _genes, kittyOwner);

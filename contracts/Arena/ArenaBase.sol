@@ -82,8 +82,8 @@ contract ArenaBase {
     function _enterKitty(uint256 _tokenId, uint128 _power) internal {
         _escrow(msg.sender, _tokenId);
 
-        if(battleKitties[_tokenId].basePower == 0) {
-            KittyProfile memory profile = KittyProfile(_power,0,0,0,0);
+        if(battleKitties[_tokenId].level == 0) {
+            KittyProfile memory profile = KittyProfile(_power,0,0,1,0);
             battleKitties[_tokenId] = profile;
         } 
 
@@ -220,15 +220,10 @@ contract ArenaBase {
     }
 
     function _level(uint256 _tokenId, uint8 _currLevel) internal {
-        if(_currLevel == 0) {
-            _currLevel = 1;
-            battleKitties[_tokenId].level++;
-        }
-
         require(msg.value >= _currLevel*1 ether);
 
-        battleKitties[_tokenId].level++;
         battleKitties[_tokenId].basePower += battleKitties[_tokenId].basePower * battleKitties[_tokenId].level;
+        battleKitties[_tokenId].level++;
 
         if(battleKitties[_tokenId].basePower > battleKitties[championId].basePower) {
             championId = _tokenId;

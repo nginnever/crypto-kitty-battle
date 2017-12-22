@@ -34,14 +34,14 @@ module.exports = function(deployer) {
   // })
 
   // deploy sale auction
-  Arena.new("0x606991c078088943e32d3bb97c294c9e8b6480fc").then((res) => {
-    token = res.address
-    console.log('Arena Address: ', res.address)
-    PowerScience.new().then((res) => {
-      token = res.address
-      console.log('PowerScience Address: ', res.address)
-    })
-  })
+  // Arena.new("0x606991c078088943e32d3bb97c294c9e8b6480fc").then((res) => {
+  //   token = res.address
+  //   console.log('Arena Address: ', res.address)
+  //   PowerScience.new().then((res) => {
+  //     token = res.address
+  //     console.log('PowerScience Address: ', res.address)
+  //   })
+  // })
 
   // deploy all CK
   // KittyCore.new().then((res) => {

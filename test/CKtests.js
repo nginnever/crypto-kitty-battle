@@ -105,35 +105,63 @@ contract('CryptoKitties', function(accounts) {
     let rand1 = await ar.rand1()
     let rand2 = await ar.rand2()
 
-    console.log('battle: ' + battle)
+    console.log('battle removed: ' + battle)
     console.log('score1: ' + score1)
     console.log('score2: ' + score2)
     console.log('rand1: ' + rand1)
     console.log('rand2: ' + rand2)
 
-    for(let i=0; i<100; i++) {
-      console.log('++++++++++++++++++++++++++++')
-      await ar.createBattle(1, 21*10**18, 1, 10, {from: accounts[2], value: 21*10**18})
-      let battle = await ar.tokenIdToBattle(1)
+    await ar.level(2, {from: accounts[1], value: 1*10**18})
+    let lvl = await ar.battleKitties(2)
 
-      await ar.fight(3, 1, {from: accounts[0], value: 21*10**18})
+    console.log('Kitty 2 level up: ' + lvl)
 
-      profile = await ar.battleKitties(1)
-      profile2 = await ar.battleKitties(3)
+    await ar.createBattle(1, 0, 2, 10, {from: accounts[2]})
+    battle = await ar.tokenIdToBattle(1)
 
-      console.log('warrior: ' + profile)
-      console.log('warrior2: ' + profile2)
-      console.log('balance arena: ' + web3.eth.getBalance(ar.address))
-      battle = await ar.tokenIdToBattle(1)
-      let score1 = await ar.score1()
-      let score2 = await ar.score2()
-      let rand1 = await ar.rand1()
-      let rand2 = await ar.rand2()
+    console.log('pink slips battle: ' + battle)
 
-      console.log('score1: ' + score1)
-      console.log('score2: ' + score2)
-      console.log('rand1: ' + rand1)
-      console.log('rand2: ' + rand2) 
-    }
+    let own = await ar.fighterIndexToOwner(1)
+    console.log('Owner cat 1: ' + own)
+    own = await ar.fighterIndexToOwner(2)
+    console.log('Owner cat 2: ' + own)
+
+    await ar.fight(2, 1, {from: accounts[1]})
+
+    profile = await ar.battleKitties(1)
+    profile2 = await ar.battleKitties(2)
+
+    console.log('warrior: ' + profile)
+    console.log('warrior2: ' + profile2)
+
+    own = await ar.fighterIndexToOwner(1)
+    console.log('Owner cat 1: ' + own)
+    own = await ar.fighterIndexToOwner(2)
+    console.log('Owner cat 2: ' + own)
+
+    // for(let i=0; i<100; i++) {
+    //   console.log('++++++++++++++++++++++++++++')
+    //   await ar.createBattle(1, 21*10**18, 1, 10, {from: accounts[2], value: 21*10**18})
+    //   let battle = await ar.tokenIdToBattle(1)
+
+    //   await ar.fight(3, 1, {from: accounts[0], value: 21*10**18})
+
+    //   profile = await ar.battleKitties(1)
+    //   profile2 = await ar.battleKitties(3)
+
+    //   console.log('warrior: ' + profile)
+    //   console.log('warrior2: ' + profile2)
+    //   console.log('balance arena: ' + web3.eth.getBalance(ar.address))
+    //   battle = await ar.tokenIdToBattle(1)
+    //   let score1 = await ar.score1()
+    //   let score2 = await ar.score2()
+    //   let rand1 = await ar.rand1()
+    //   let rand2 = await ar.rand2()
+
+    //   console.log('score1: ' + score1)
+    //   console.log('score2: ' + score2)
+    //   console.log('rand1: ' + rand1)
+    //   console.log('rand2: ' + rand2) 
+    // }
   })
 })
