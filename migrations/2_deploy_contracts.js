@@ -14,15 +14,15 @@ module.exports = function(deployer) {
   //   console.log('KittyCore Address: ', res.address)
   // })
 
-  // // deploy sale auction
-  // SaleAuction.new("0x606991c078088943e32d3bb97c294c9e8b6480fc", 10).then((res) => {
+  // deploy sale auction
+  // SaleAuction.new("0x95ef2833688ee675dfc1350394619ae22b7667df", 10).then((res) => {
   //   token = res.address
   //   console.log('SaleAuction Address: ', res.address)
   //   console.log('SaleAuction Address: ', token)
   // })
 
   // // deploy siring auction
-  // SiringAuction.new("0x606991c078088943e32d3bb97c294c9e8b6480fc", 10).then((res) => {
+  // SiringAuction.new("0x95ef2833688ee675dfc1350394619ae22b7667df", 10).then((res) => {
   //   token = res.address
   //   console.log('SiringAuction Address: ', res.address)
   // })
@@ -34,14 +34,14 @@ module.exports = function(deployer) {
   // })
 
   // deploy sale auction
-  // Arena.new("0x606991c078088943e32d3bb97c294c9e8b6480fc").then((res) => {
-  //   token = res.address
-  //   console.log('Arena Address: ', res.address)
-  //   PowerScience.new().then((res) => {
-  //     token = res.address
-  //     console.log('PowerScience Address: ', res.address)
-  //   })
-  // })
+  Arena.new("0x95ef2833688ee675dfc1350394619ae22b7667df").then((res) => {
+    token = res.address
+    console.log('Arena Address: ', res.address)
+    PowerScience.new().then((res) => {
+      token = res.address
+      console.log('PowerScience Address: ', res.address)
+    })
+  })
 
   // deploy all CK
   // KittyCore.new().then((res) => {
