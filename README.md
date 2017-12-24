@@ -2,9 +2,9 @@
 
 Crypto Kitties Battleground is an extension to the popular crypto kitties smart contracts. Those who have purchased or bred crypto kitties may deposit their cats into the battle arena contract. Once deposited kitty owners can train their crypto warriors by calling the `level()` function. The more ether an owner has the higher they may pump their kitties battle stats.
 
-Currently all cats enter the arena with a base power rating that can be increased by training the kitty. The base powe rating is determined randomly based upon the genetics of the cat. Factors such as a lower generation number and faster birthing cooldown will give the kitty a higher chance of having a high base power. This base power is the multiplication factor of the power increase gained from calling the level() function. Cats with a higher base power rating will be able to achieve the highest power in the arena.
+Currently all cats enter the arena with a base power rating that can be increased by training the kitty. The base power rating is determined randomly based upon the genetics of the cat. Factors such as a lower generation number and faster birthing cool down will give the kitty a higher chance of having a high base power. This base power is the multiplication factor of the power increase gained from calling the level() function. Cats with a higher base power rating will be able to achieve the highest power in the arena.
 
-Entering a battle is accomplished by checking the battle registery to find an open battle request in your kitties power range, or by creating an open battle request with a specified power range and ether wager for win/lose. Each dueling kitties stats are compared in a non-verified contract that encorporates some randomness into the victory decision.
+Entering a battle is accomplished by checking the battle registry to find an open battle request in your kitties power range, or by creating an open battle request with a specified power range and ether wager for win/lose. Each dueling kitties stats are compared in a non-verified contract that incorporates some randomness into the victory decision.
 
 #### Hold the arena!
 
@@ -14,9 +14,46 @@ The kitty in the gym with the highest power will collect a percentage of all are
 
 Do to the complexity of the CK contract the test version of CK Battle Arena is deployed on the rinkeby/kovan test network where the block gas limit is > 6000000
 
-Kitty 0 (genesis kitty) genes are hardcoded to the underflow of `uint256 (0 - 1 = 2**256 - 1)`
+Kitty 0 (genesis kitty) genes are hard coded to the underflow of `uint256 (0 - 1 = 2**256 - 1)`
 
-A testnet version based on the open and verified crypto kitties mainnet deployment can be found at the following addresses
+A testnet version of the arena based on the open and verified crypto kitties mainnet deployment can be found at the following addresses.
+
+### How to test battle
+
+1. Get a test kitty. 
+
+Using MEW load the kitty core ABI and contract address below. Access the `createPromoKitty()` function. Grab a genetic sequence from your favorite real crypto kitty or enter a random 128bit integer string as the genes parameter and the ethereum address of the owner of the new kitteh.
+
+2. Enter your kitteh in the arena
+
+On the KittyCore contract now access the ERC721 `approve()` function and approve the arena address to transfer your test kitteh. Depositing kitties into the arena in two transactions is a limit of tokens that do not implement an `approveAndCall()` method for contracts that need permission to transfer tokens internally. 
+
+Open a new instance of MEW and load the Arena ABI and address listed below. Access the `enterArena()` function with the kitty ID of the kitteh you have just approved and send the transaction from the owner account that was passed in during kitteh creation. You now have a kitteh ready to battle and you can check its base states by accessing the `battleKitties()` storage mapping.
+
+3. Battle a kitteh
+
+In the current version there is no array of open battle to iterate through, it is left to an application layer to access the logs and reference the mapping storing open battles. You can deposit a second cat to test battling or create a battle with another tester.
+
+3 a) Create a battle
+
+Access the `createBattle()` function on the arena contract and send a transaction specifying 
+
+- which cat you wish to enter into battle 
+- the wager price you have must send to battle this kitteh, 0 if game mode 2 or 3
+- the game mode: 
+  - 1 for wager battle
+  - 2 for owner transfer battle
+  - 3 for pride battle (no wager)
+  - 4 to the death (coming soon, losing kitteh will be sent to a burn address)
+- power range, supply the acceptable range of power a challenger cat may have compared to your entered kitty. (ex if your kitty is base power 6 and you enter 2 on kittehs in the range of 4-8 will be able to battle)
+
+3 b) Challenge an open battle
+
+Access the `fight()` function and send a transaction from the owner of the cat you wish to battle with providing the ERC721 ID of the kitteh you are battling and the one you are fighting with and any ether wager payment game mode 2
+
+4. Review battle outcome
+
+The battle winner is chosen at random weighted by your cats base power rating. You can check your trainer stats by accessing `trainers()` with your ethereum address or by checking your kittehs stats. Each tallies the wins and loses. If you played game mode 1,2, or 4 you should see transfers of the ERC721 tokens and Eth tokens accordingly.
 
 Arena Address:  `0x1932bd525d341643123fc4a19d9c8ab2742610eb`
 
@@ -1725,7 +1762,6 @@ Kitty Core ABI:
 ```
 
 
-This allows for beta testing of the crypto kitties battlegrounds without the risk of destroying real kittehs.
 
 ### Deployment process notes
 
