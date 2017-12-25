@@ -2,9 +2,9 @@
 
 Crypto Kitties Battleground is an extension to the popular crypto kitties smart contracts. Those who have purchased or bred crypto kitties may deposit their cats into the battle arena contract. Once deposited kitty owners can train their crypto warriors by calling the `level()` function. The more ether an owner has the higher they may pump their kitties battle stats.
 
-Currently all cats enter the arena with a base power rating that can be increased by training the kitty. The base power rating is determined randomly based upon the genetics of the cat. Factors such as a lower generation number and faster birthing cool down will give the kitty a higher chance of having a high base power. This base power is the multiplication factor of the power increase gained from calling the level() function. Cats with a higher base power rating will be able to achieve the highest power in the arena.
+Currently all kitties enter the arena with a base power rating that can be increased by training the kitty. The base power rating is determined randomly based upon the genetics of the kitteh. Factors such as a lower generation number and faster birthing cool down will give the kitty a higher chance of having a high base power. This base power is the multiplication factor of the power increase gained from calling the level() function. Kitties with a higher base power rating will be able to achieve the highest power in the arena.
 
-Entering a battle is accomplished by checking the battle registry to find an open battle request in your kitties power range, or by creating an open battle request with a specified power range and ether wager for win/lose. Each dueling kitties stats are compared in a non-verified contract that incorporates some randomness into the victory decision.
+Entering a battle is accomplished by checking the battle registry to find an open battle request in your kitties power range, or by creating an open battle request with a specified power range and ether wager for win/lose. A winner is determined randomly weighted by the dueling kitties base power ratings (Those with a higher power rating have a higher chance of winning).
 
 #### Hold the arena!
 
