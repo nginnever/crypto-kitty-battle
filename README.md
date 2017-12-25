@@ -51,6 +51,10 @@ Access the `fight()` function and send a transaction from the owner of the cat y
 
 The battle winner is chosen at random weighted by your cats base power rating. You can check your trainer stats by accessing `trainers()` with your ethereum address or by checking your kittehs stats. Each tallies the wins and loses. If you played game mode 1,2, or 4 you should see transfers of the ERC721 tokens and Eth tokens accordingly.
 
+5. Increase kitteh power
+
+You may call the `level()` function with the ID of the kitty you wish to level up to 9 times. Each level costs its level in Ether. Level costs 1 ether, level 2 costs 2 ether and so on until level 9. Each level returns a higher base power equal to the kitties `current_base+power + current_base_power * level`.
+
 Arena Address:  `0x1932bd525d341643123fc4a19d9c8ab2742610eb`
 
 Arena ABI:
