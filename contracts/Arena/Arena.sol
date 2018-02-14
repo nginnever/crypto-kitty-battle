@@ -62,19 +62,22 @@ contract Arena is ArenaBase, Ownable, Pausable {
             // _kitties.push(_tokenId);
             Trainer memory trainer = Trainer(1, 0, 0);
             trainers[msg.sender] = trainer;
+        }
+
+        if(battleKitties[_tokenId].basePower == 0) {
+            var (_a, _b, _c, _d, _e, _f, _g, _h, _i, _j) = nonFungibleContract.getKitty(_tokenId);
+            uint256 _power = powerScience.findPower(_j, _i, _c);
+
+            if(_power > battleKitties[championId].basePower) {
+                championId = _tokenId;
+            }
+
+            _enterKitty(_tokenId, uint128(_power));
         } else {
-            trainers[msg.sender].numKittiesInArena++;
-            //trainer.kitties.push(_tokenId);
+            fighterIndexToOwner[_tokenId] = msg.sender;
         }
 
-        var (_a, _b, _c, _d, _e, _f, _g, _h, _i, _j) = nonFungibleContract.getKitty(_tokenId);
-        uint256 _power = powerScience.findPower(_j, _i, _c);
-
-        if(_power > battleKitties[championId].basePower) {
-            championId = _tokenId;
-        }
-
-        _enterKitty(_tokenId, uint128(_power));
+        trainers[msg.sender].numKittiesInArena++;
     }
 
     function leaveArena(uint256 _tokenId) {

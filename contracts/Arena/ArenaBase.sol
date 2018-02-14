@@ -3,6 +3,8 @@ pragma solidity ^0.4.11;
 
 import '../CryptoCats/KittyCore.sol';
 import '../CryptoCats/token/ERC721.sol';
+import '../channels/contracts/ChannelManager.sol';
+import '../channels/contracts/interpreters/InterpretBattleChannel.sol';
 
 /// @title Arena Core
 /// @dev Contains models, variables, and internal methods for the arena.
@@ -15,6 +17,7 @@ contract ArenaBase {
     uint256 public rand2;
 
     // Represents an auction on an NFT
+    // replace with channel details
     struct Battle {
         // Current owner of NFT
         address initiator;
@@ -43,6 +46,8 @@ contract ArenaBase {
         uint64 losses;
         uint8 level;
         uint64 coolDown;
+        uint128[3] baseStats;
+        uint8[3] attacks;
     }
 
     // Reference to contract tracking NFT ownership
@@ -83,7 +88,7 @@ contract ArenaBase {
         _escrow(msg.sender, _tokenId);
 
         if(battleKitties[_tokenId].level == 0) {
-            KittyProfile memory profile = KittyProfile(_power,0,0,1,0);
+            KittyProfile memory profile = KittyProfile(_power,0,0,1,0,[10*_power, 2*_power, 1*_power],[0,0,0]);
             battleKitties[_tokenId] = profile;
         } 
 
@@ -123,6 +128,10 @@ contract ArenaBase {
             uint256(_battle.wagerPrice),
             uint256(_battle.startedAt)
         );
+    }
+
+    function _openChannel() internal {
+
     }
 
     /// @dev Cancels a battle unconditionally.
