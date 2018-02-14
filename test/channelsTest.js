@@ -89,15 +89,20 @@ contract('CryptoKitties', function(accounts) {
     console.log('champion: ' + champ)
     console.log('champion: ' + champ2)
 
-    await ar.createBattle(1, 21*10**18, 1, 10, {from: accounts[2], value: 21*10**18})
+    // get state and signature 
+
+    await ar.createBattle(1, accounts[1], 21*10**18, 1, 10, {from: accounts[2], value: 21*10**18})
     let battle = await ar.tokenIdToBattle(1)
+    let kit = await ar.getKittyStats(1)
 
     console.log('battle: ' + battle)
+    console.log('battle kitty id: 1 base stats HP: ' + kit[5][0] + ' DP: ' + kit[5][1] + ' AP: ' + kit[5][2])
+    console.log('battle kitty id: 1 attacks A1: ' + kit[6][0] + ' A2: ' + kit[6][1] + ' A3: ' + kit[6][2])
 
     console.log('balance 1: ' + web3.eth.getBalance(accounts[1]))
     console.log('balance 2: ' + web3.eth.getBalance(accounts[2]))
 
-    await ar.fight(2, 1, {from: accounts[1], value: 21*10**18})
+    await ar.joinBattle(2, 1, {from: accounts[1], value: 21*10**18})
 
     profile = await ar.battleKitties(1)
     profile2 = await ar.battleKitties(2)
@@ -124,7 +129,9 @@ contract('CryptoKitties', function(accounts) {
 
     console.log('Kitty 2 level up: ' + lvl)
 
-    await ar.createBattle(1, 0, 2, 10, {from: accounts[2]})
+    // get state and signature
+
+    await ar.createBattle(1, accounts[1], 0, 2, 10, {from: accounts[2]})
     battle = await ar.tokenIdToBattle(1)
 
     console.log('pink slips battle: ' + battle)
@@ -134,7 +141,7 @@ contract('CryptoKitties', function(accounts) {
     own = await ar.fighterIndexToOwner(2)
     console.log('Owner cat 2: ' + own)
 
-    await ar.fight(2, 1, {from: accounts[1]})
+    await ar.joinBattle(2, 1, {from: accounts[1]})
 
     profile = await ar.battleKitties(1)
     profile2 = await ar.battleKitties(2)

@@ -21,6 +21,8 @@ contract ArenaBase {
     struct Battle {
         // Current owner of NFT
         address initiator;
+        // opponent
+        address opponent;
         // initiator cat
         uint256 initiatorCatID;
         // Price (in wei) to challenge this cat
@@ -87,10 +89,26 @@ contract ArenaBase {
     function _enterKitty(uint256 _tokenId, uint128 _power) internal {
         _escrow(msg.sender, _tokenId);
 
+        // check if this is the first time kitty has entered arena
+        // create it's initial profile based on the power rating and block hash
         if(battleKitties[_tokenId].level == 0) {
-            KittyProfile memory profile = KittyProfile(_power,0,0,1,0,[10*_power, 2*_power, 1*_power],[0,0,0]);
+            // chance that attacks are duplicated is relatively high here
+            uint8 tempAttack1 = uint8(uint(block.blockhash(block.number -1))%12);
+            uint8 tempAttack2 = uint8(uint(block.blockhash(block.number -2))%12);
+            uint8 tempAttack3 = uint8(uint(block.blockhash(block.number -3))%12);
+
+            KittyProfile memory profile = KittyProfile(
+                _power,
+                0,
+                0,
+                1,
+                0,
+                [10*_power, 2*_power, 1*_power],
+                [tempAttack1,tempAttack2,tempAttack3]
+            );
+
             battleKitties[_tokenId] = profile;
-        } 
+        }
 
         fighterIndexToOwner[_tokenId] = msg.sender;
 
@@ -131,6 +149,10 @@ contract ArenaBase {
     }
 
     function _openChannel() internal {
+        InterpretBattleChannel interpreter = new InterpretBattleChannel();
+    }
+
+    function _joinChannel() internal {
 
     }
 

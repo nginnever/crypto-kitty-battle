@@ -97,9 +97,15 @@ contract Arena is ArenaBase, Ownable, Pausable {
     /// @param _powerRange - acceptable range of power challengers may have
     function createBattle(
         uint256 _tokenId,
+        address _opponent,
         uint256 _wagerPrice,
         uint8 _gameMode,
-        uint64 _powerRange
+        uint64 _powerRange,
+        uint _settlementPeriod,
+        bytes _data,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
     )
         payable
         whenNotPaused
@@ -115,6 +121,7 @@ contract Arena is ArenaBase, Ownable, Pausable {
 
         Battle memory battle = Battle(
             msg.sender,
+            _opponent,
             uint256(_tokenId),
             uint128(_wagerPrice),
             uint8(_gameMode),
@@ -123,12 +130,13 @@ contract Arena is ArenaBase, Ownable, Pausable {
         );
 
         _addBattle(_tokenId, battle);
+        _openChannel();
     }
 
     /// @dev Attempts to engage in an open battle, completing the battle and transferring
     ///  ownership of the NFT or ether if enough Ether is supplied.
     /// @param _tokenId - ID of token to bid on.
-    function fight(uint256 _tokenId, uint256 _initiatorTokenId)
+    function joinBattle(uint256 _tokenId, uint256 _initiatorTokenId)
         payable
         whenNotPaused
     {
@@ -174,6 +182,7 @@ contract Arena is ArenaBase, Ownable, Pausable {
         returns
     (
         address initiator,
+        address _opponent,
         uint256 initiatorCatID,
         uint128 wagerPrice,
         uint8 gameMode,
@@ -184,6 +193,7 @@ contract Arena is ArenaBase, Ownable, Pausable {
         require(_isOnBattle(_tokenId));
         return (
             battle.initiator,
+            battle.opponent,
             battle.initiatorCatID,
             battle.wagerPrice,
             battle.gameMode,
@@ -192,4 +202,28 @@ contract Arena is ArenaBase, Ownable, Pausable {
         );
     }
 
+    function getKittyStats(uint256 _tokenId)
+        external
+        view
+        returns
+    (
+        uint128 basePower,
+        uint64 wins,
+        uint64 losses,
+        uint8 level,
+        uint64 coolDown,
+        uint128[3] baseStats,
+        uint8[3] attacks
+    ) {
+        KittyProfile storage kitty = battleKitties[_tokenId];
+        return (
+            kitty.basePower,
+            kitty.wins,
+            kitty.losses,
+            kitty.level,
+            kitty.coolDown,
+            kitty.baseStats,
+            kitty.attacks
+        );
+    }
 }
