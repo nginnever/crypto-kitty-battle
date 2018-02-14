@@ -6,6 +6,9 @@ const SaleAuction = artifacts.require('./SaleClockAuction.sol')
 const SiringAuction = artifacts.require('./SiringClockAuction.sol')
 const GeneScienceSkeleton = artifacts.require('./GeneScienceSkeleton.sol')
 
+const ChannelManager = artifacts.require("./ChannelManager.sol")
+const Interpreter = artifacts.require("./InterpretNPartyPayments.sol")
+
 const Arena = artifacts.require('./Arena.sol')
 const PowerScience = artifacts.require('./PowerScience.sol')
 
@@ -26,6 +29,11 @@ contract('CryptoKitties', function(accounts) {
     let si = await SiringAuction.new(kc.address, 10)
     console.log(si.address)
     let gs = await GeneScienceSkeleton.new()
+    console.log(gs.address)
+    let cm = await ChannelManager.new()
+    console.log(cm.address)
+    let int = await Interpreter.new()
+    console.log(int.address)
 
     await kc.setSiringAuctionAddress(si.address)
     await kc.setGeneScienceAddress(gs.address)
