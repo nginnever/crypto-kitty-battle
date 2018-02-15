@@ -89,7 +89,20 @@ contract('CryptoKitties', function(accounts) {
     console.log('champion: ' + champ)
     console.log('champion: ' + champ2)
 
-    // get state and signature 
+    // get state and signature
+    var msg
+
+    msg = generateState(0, 0, accounts[0], accounts[1], 10, 5)
+
+
+    // Hashing and signature
+    var hmsg = web3.sha3(msg, {encoding: 'hex'})
+    console.log('hashed msg: ' + hmsg)
+
+    var sig1 = await web3.eth.sign(accounts[0], hmsg)
+    var r = sig1.substr(0,66)
+    var s = "0x" + sig1.substr(66,64)
+    var v = 27
 
     await ar.createBattle(1, accounts[1], 21*10**18, 1, 10, {from: accounts[2], value: 21*10**18})
     let battle = await ar.tokenIdToBattle(1)
@@ -180,3 +193,41 @@ contract('CryptoKitties', function(accounts) {
     // }
   })
 })
+
+function generateState(sentinel, seq, wager, addyA, addyB, balB) {
+    var sentinel = padBytes32(web3.toHex(sentinel))
+    var sequence = padBytes32(web3.toHex(seq))
+    var wager = padBytes32(web3.toHex(web3.toWei(wager, 'ether')))
+    var addressA = padBytes32(addyA)
+    var addressB = padBytes32(addyB)
+    var balanceA = padBytes32(web3.toHex(web3.toWei(balA, 'ether')))
+    var balanceB = padBytes32(web3.toHex(web3.toWei(balB, 'ether')))
+
+    var m = sentinel +
+        sequence.substr(2, sequence.length) +
+        addressA.substr(2, addressA.length) +
+        addressB.substr(2, addressB.length) +
+        balanceA.substr(2, balanceA.length) + 
+        balanceB.substr(2, balanceB.length)
+
+    return m
+}
+
+function padBytes32(data){
+  let l = 66-data.length
+  let x = data.substr(2, data.length)
+
+  for(var i=0; i<l; i++) {
+    x = 0 + x
+  }
+  return '0x' + x
+}
+
+function rightPadBytes32(data){
+  let l = 66-data.length
+
+  for(var i=0; i<l; i++) {
+    data+=0
+  }
+  return data
+}
