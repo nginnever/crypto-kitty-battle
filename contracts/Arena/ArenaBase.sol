@@ -16,6 +16,8 @@ contract ArenaBase {
     uint256 public rand1;
     uint256 public rand2;
 
+    address public channelManager;
+
     // Represents an auction on an NFT
     // replace with channel details
     struct Battle {
@@ -148,8 +150,11 @@ contract ArenaBase {
         );
     }
 
-    function _openChannel() internal {
+    function _openChannel(uint _wager, uint _settlementPeriod, bytes _data, uint8 _v, bytes32 _r, bytes32 _s) internal {
         InterpretBattleChannel interpreter = new InterpretBattleChannel();
+        ChannelManager chanMan = ChannelManager(channelManager);
+
+        chanMan.openChannel(_wager, _settlementPeriod, address(interpreter), _data, _v, _r, _s);
     }
 
     function _joinChannel() internal {
@@ -160,6 +165,30 @@ contract ArenaBase {
     function _cancelBattle(uint256 _tokenId, address _initiator) internal {
         _removeBattle(_tokenId);
         BattleCancelled(_tokenId);
+    }
+
+    function _joinBattle(
+        uint256 _tokenId,
+        uint256 _initiatorTokenId,
+        uint256 _bidAmount,
+        bytes32 _id,
+        bytes _data,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    ) 
+        internal 
+    {
+        Battle storage battle = tokenIdToBattle[_initiatorTokenId];
+
+        // Check that the bid is greater than or equal to the current price
+        uint256 wager = battle.wagerPrice;
+        require(_bidAmount >= wager);
+        require(_isOnBattle(_initiatorTokenId));
+        require(_isWithinPower(_tokenId, _initiatorTokenId, battle.powerRange));
+
+        ChannelManager chanMan = ChannelManager(channelManager);
+
     }
 
     /// @dev Computes the price and transfers winnings.

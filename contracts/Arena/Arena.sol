@@ -21,10 +21,12 @@ contract Arena is ArenaBase, Ownable, Pausable {
     ///  and verifies the owner cut is in the valid range.
     /// @param _nftAddress - address of a deployed contract implementing
     ///  the Nonfungible Interface.
-    function Arena(address _nftAddress) {
+    function Arena(address _nftAddress, address _chan) {
         KittyCore candidateContract = KittyCore(_nftAddress);
         require(candidateContract.supportsInterface(InterfaceSignature_ERC721));
         nonFungibleContract = candidateContract;
+
+        channelManager = _chan;
 
         owner = msg.sender;
     }
@@ -130,19 +132,27 @@ contract Arena is ArenaBase, Ownable, Pausable {
         );
 
         _addBattle(_tokenId, battle);
-        _openChannel();
+        _openChannel(_wagerPrice, _settlementPeriod, _data, _v, _r, _s);
     }
 
     /// @dev Attempts to engage in an open battle, completing the battle and transferring
     ///  ownership of the NFT or ether if enough Ether is supplied.
     /// @param _tokenId - ID of token to bid on.
-    function joinBattle(uint256 _tokenId, uint256 _initiatorTokenId)
+    function joinBattle(
+        uint256 _tokenId,
+        uint256 _initiatorTokenId,
+        bytes32 _id,
+        bytes _data,
+        uint8 _v,
+        bytes32 _r,
+        bytes32 _s
+    )
         payable
         whenNotPaused
     {
         require(_owns(this, _tokenId));
         require(fighterIndexToOwner[_tokenId] == msg.sender);
-        _battle(_tokenId, _initiatorTokenId, msg.value);
+        _joinBattle(_tokenId, _initiatorTokenId, msg.value, _id, _data, _v, _r, _s);
     }
 
     /// @dev Cancels a battle that hasn't been won yet.
