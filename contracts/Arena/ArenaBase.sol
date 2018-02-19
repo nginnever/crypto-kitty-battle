@@ -188,7 +188,7 @@ contract ArenaBase {
         require(_isWithinPower(_tokenId, _initiatorTokenId, battle.powerRange));
 
         ChannelManager chanMan = ChannelManager(channelManager);
-
+        chanMan.joinChannel(_id, _data, _v, _r, _s);
     }
 
     /// @dev Computes the price and transfers winnings.

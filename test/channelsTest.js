@@ -14,12 +14,9 @@ const PowerScience = artifacts.require('./PowerScience.sol')
 
 const Test = artifacts.require('./Test.sol')
 
+const attacks = [12, 24, 4, 16, 32, 2, 20, 8, 40, 36, 14, 28];
+
 contract('CryptoKitties', function(accounts) {
-  let KCore
-  let SAuction
-  let SiAuction
-
-
   it('should deploy KittyCore', async function() {
     let cm = await ChannelManager.new()
     console.log(cm.address)
@@ -99,9 +96,9 @@ contract('CryptoKitties', function(accounts) {
     // [] owner
     // [] kitty id
     // [] base power
-    // [] wins
-    // [] losses
-    // [] level
+    // //[] wins
+    // //[] losses
+    // //[] level
     // [] cool down
     // [] HP hit point
     // [] DP defense points
@@ -109,10 +106,14 @@ contract('CryptoKitties', function(accounts) {
     // [] A1 attack action
     // [] A2 attack action
     // [] A3 attack action
+    // [] chosen attack
 
     // get kitty stats from arena
     let kit = await ar.getKittyStats(1) // account[2]
     let kit2 = await ar.getKittyStats(2) // account[1]
+
+    var p1State = [Object.assign({}, kit), Object.assign({}, kit2)]
+    var p2State = [Object.assign({}, kit), Object.assign({}, kit2)]
 
     console.log('total kitty stats, kitty 1: ' + kit)
     console.log('battle kitty id: 1 base stats HP: ' + kit[5][0] + ' DP: ' + kit[5][1] + ' AP: ' + kit[5][2])
@@ -123,13 +124,15 @@ contract('CryptoKitties', function(accounts) {
     var msg
 
     msg = generateState(
-      0, 
-      0, 
+      0,
+      0,
       21, 
       2, 
-      [accounts[1], accounts[2]],
-      [2, 1],
-      [kit, kit2]
+      [accounts[2], accounts[1]],
+      [1, 2],
+      [kit, kit2],
+      0,
+      0
     )
 
     console.log('generated state: ' + msg)
@@ -142,7 +145,13 @@ contract('CryptoKitties', function(accounts) {
     var s = "0x" + sig1.substr(66,64)
     var v = 28
 
-    await ar.createBattle(1, accounts[1], 21*10**18, 1, 10, 0, msg, v, r, s, {from: accounts[2], value: 21*10**18})
+    try {
+      await ar.createBattle(1, accounts[1], 21*10**18, 1, 10, 0, msg, v, r, s, {from: accounts[2], value: 21*10**18})
+    } catch(error) {
+      v = 27
+      await ar.createBattle(1, accounts[1], 21*10**18, 1, 10, 0, msg, v, r, s, {from: accounts[2], value: 21*10**18})
+    }
+
 
     //console.log('channel struct Interpreter address: ' + chan[2])
 
@@ -157,14 +166,9 @@ contract('CryptoKitties', function(accounts) {
       console.log('channel event: ' + res[0].args.channelId)
       chanId = res[0].args.channelId
     })
-    const timeout = ms => new Promise(res => setTimeout(res, ms))
+    let timeout = ms => new Promise(res => setTimeout(res, ms))
     await timeout(1000)
-    // for(var i=0; i<1000000; i++){
-    //   var x = 1
-    //   var y = 2
-    //   var z = Math.pow(3,x)*y+x-y
-    // }
-    //console.log('channel event: ' + logs)
+
 
     console.log('battle: ' + battle)
     console.log('Interpreter addy: ' + int.address)
@@ -178,9 +182,55 @@ contract('CryptoKitties', function(accounts) {
     var sig2 = await web3.eth.sign(accounts[1], hmsg)
     var r2 = sig2.substr(0,66)
     var s2 = "0x" + sig2.substr(66,64)
-    var v2 = 27
+    var v2 = 28
 
-    await ar.joinBattle(2, 1, chanId, msg, v2, r2, s2, {from: accounts[1], value: 21*10**18})
+    try {
+      await ar.joinBattle(2, 1, chanId, msg, v2, r2, s2, {from: accounts[1], value: 21*10**18})
+
+    } catch(error) {
+      v2 = 27
+
+      await ar.joinBattle(2, 1, chanId, msg, v2, r2, s2, {from: accounts[1], value: 21*10**18})
+    }
+
+    event = cm.allEvents({fromBlock: 0, toBlock: 'latest'})
+    event.get((err, res)=>{
+      console.log('Channel opened, joining party: ' + res[1].args.joiningParty)
+    })
+    timeout = ms => new Promise(res => setTimeout(res, ms))
+    await timeout(1000)
+
+    // Start generating state transitions
+    // Transition = Attack(attackNum)
+    // attackNum = index of attack lookup
+
+
+    console.log('player 0 (account[2], kitty 1) is choosing attack A1: ' + kit[6][0])
+
+    p1State[1] = runStateUpdate(p1State[1], kit[6][0])
+
+    msg = generateState(
+      0,
+      1,
+      21, 
+      2, 
+      [accounts[2], accounts[1]],
+      [1, 2],
+      p1State,
+      kit[6][0],
+      0
+    )
+
+    console.log('generated state: ' + msg)
+    // Hashing and signature
+    hmsg = web3.sha3(msg, {encoding: 'hex'})
+    console.log('hashed msg: ' + hmsg)
+
+    console.log('---------------')
+    console.log('simulated send of state to player 1 (account[1], kitty 2): [\'derived state\'\'local state copy\'\'action applied\']')
+    validateState(0, msg, p2State[1], kit[6][0])
+
+
 
     // profile = await ar.battleKitties(1)
     // profile2 = await ar.battleKitties(2)
@@ -267,7 +317,8 @@ contract('CryptoKitties', function(accounts) {
   })
 })
 
-function generateState(sentinel, seq, wager, numKitties, owners, ids, kitties) {
+function generateState(sentinel, seq, wager, numKitties, owners, ids, kitties, attack, activePlayer) {
+
   var sentinel = padBytes32(web3.toHex(sentinel))
   var sequence = padBytes32(web3.toHex(seq))
   var wager = padBytes32(web3.toHex(web3.toWei(wager, 'ether')))
@@ -285,21 +336,26 @@ function generateState(sentinel, seq, wager, numKitties, owners, ids, kitties) {
     var basePower = padBytes32(web3.toHex(kitties[i][0]))
     // var wins = padBytes32(web3.toHex(kitties[i][1]))
     // var losses = padBytes32(web3.toHex(kitties[i][2]))
-    var level = padBytes32(web3.toHex(kitties[i][3]))
+    // var level = padBytes32(web3.toHex(kitties[i][3]))
     var cooldown = padBytes32(web3.toHex(kitties[i][4]))
     var hp = padBytes32(web3.toHex(kitties[i][5][0]))
     var dp = padBytes32(web3.toHex(kitties[i][5][1]))
     var ap = padBytes32(web3.toHex(kitties[i][5][2]))
     var a1 = padBytes32(web3.toHex(kitties[i][6][0]))
     var a2 = padBytes32(web3.toHex(kitties[i][6][1]))
-    var a3 = padBytes32(web3.toHex(kitties[i][6][2]))
+    var a3 = padBytes32(web3.toHex(kitties[i][6][2])) // 924
+    if(activePlayer == i) {
+      var chosenAttack = padBytes32(web3.toHex(attack))
+    } else {
+      var chosenAttack = padBytes32(web3.toHex(0))
+    }
 
     m += addy.substr(2, addy.length)
     m += id.substr(2, id.length)
     m += basePower.substr(2, basePower.length)
     // m += wins.substr(2, wins.length)
     // m += losses.substr(2, losses.length)
-    m += level.substr(2, level.length)
+    // m += level.substr(2, level.length)
     m += cooldown.substr(2, cooldown.length)
     m += hp.substr(2, hp.length)
     m += dp.substr(2, dp.length)
@@ -307,9 +363,47 @@ function generateState(sentinel, seq, wager, numKitties, owners, ids, kitties) {
     m += a1.substr(2, a1.length)
     m += a2.substr(2, a2.length)
     m += a3.substr(2, a3.length)
+    m += chosenAttack.substr(2, chosenAttack.length)
   }
 
     return m
+}
+
+function runStateUpdate(state, action) {
+  var _s = Object.assign({},state)
+  console.log('running state update on kitty: ' + state)
+  console.log('action applied: ' + action + '... damage dealt: ' + attacks[action])
+
+  console.log('starting hp: ' + state[5][0])
+  _s[5][0] -= attacks[action]
+  // this is updating the wrong object
+  console.log('ending transition hp: ' + state[5][0])
+
+  return _s
+}
+
+function validateState(attacker, state, oldState, action) {
+  console.log('player 2 client validating state against their local state')
+  if(attacker==0){
+    // player one attacking, get damage dealt in state and action applied
+    var _attack = state.substr(960, 2)
+    if(parseInt('0x'+_attack) != action) {
+      console.log('Invalid State: trying to apply an action that was not signed in the state')
+    }
+
+    var _hp = state.substr(1280, 2)
+    var newHp = oldState[5][0] - attacks[parseInt('0x'+_attack)]
+    console.log(newHp)
+
+    if(parseInt('0x'+_hp) != newHp) {
+      console.log('Invalid State: Client state transition did not match signed state')
+    }
+
+    console.log('attack!!! ' + _attack)
+    console.log(parseInt('0x'+_attack))
+    console.log('testing... ' + _hp)
+    console.log(parseInt('0x'+_hp))
+  }
 }
 
 function padBytes32(data){
